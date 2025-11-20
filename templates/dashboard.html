@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Verification Control Tower</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<style>
+		:root {
+			color-scheme: light dark;
+			--bg: #0b1021;
+			--panel: rgba(17, 24, 48, 0.9);
+			--card: rgba(255, 255, 255, 0.04);
+			--accent: #7b7eff;
+			--accent-2: #ff7eb3;
+			--success: #2ecc71;
+			--danger: #ff6b6b;
+			--warning: #ffba08;
+			--text: #e4e6f1;
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			margin: 0;
+			min-height: 100vh;
+			font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+			background: radial-gradient(circle at top, #1a1f3c, #05070f 60%);
+			color: var(--text);
+			padding: 30px;
+		}
+
+		.page {
+			max-width: 1400px;
+			margin: 0 auto;
+		}
+
+		.hero {
+			background: linear-gradient(135deg, rgba(123,126,255,0.25), rgba(255,126,179,0.25));
+			border: 1px solid rgba(255,255,255,0.08);
+			border-radius: 20px;
+			padding: 32px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: 20px;
+			backdrop-filter: blur(20px);
+			box-shadow: 0 25px 60px rgba(10,12,20,0.45);
+			margin-bottom: 30px;
+		}
+
+		.hero h1 {
+			margin: 0;
+			font-size: 2.2rem;
+			font-weight: 700;
+		}
+
+		.hero p {
+			margin: 8px 0 0;
+			color: rgba(255,255,255,0.75);
+		}
+
+		.hero-actions {
+			display: flex;
+			gap: 12px;
+		}
+
+		.btn {
+			border: none;
+			border-radius: 10px;
+			padding: 12px 18px;
+			font-size: 0.95rem;
+			font-weight: 600;
+			cursor: pointer;
+			transition: transform 0.2s, box-shadow 0.2s;
+		}
+
+		.btn-primary {
+			background: linear-gradient(135deg, #7b7eff, #6ed2ff);
+			color: #0a0d1a;
+			box-shadow: 0 10px 25px rgba(123,126,255,0.35);
+		}
+
+		.btn-secondary {
+			background: rgba(255,255,255,0.12);
+			color: white;
+			border: 1px solid rgba(255,255,255,0.2);
+		}
+
+		.btn:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+			transform: none;
+			box-shadow: none;
+		}
+
+		.btn:hover:not(:disabled) {
+			transform: translateY(-1px);
+		}
+
+		.grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+			gap: 16px;
+			margin-bottom: 25px;
+		}
+
+		.stat-card {
+			background: var(--card);
+			border: 1px solid rgba(255,255,255,0.06);
+			border-radius: 16px;
+			padding: 20px;
+			backdrop-filter: blur(15px);
+			box-shadow: 0 15px 30px rgba(0,0,0,0.35);
+		}
+
+		.stat-label {
+			font-size: 0.85rem;
+			text-transform: uppercase;
+			letter-spacing: 0.08em;
+			color: rgba(255,255,255,0.6);
+		}
+
+		.stat-value {
+			font-size: 2.4rem;
+			font-weight: 700;
+			margin: 12px 0 4px;
+		}
+
+		.stat-trend {
+			font-size: 0.9rem;
+			color: rgba(255,255,255,0.65);
+		}
+
+		.panels {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 20px;
+		}
+
+		.panel {
+			background: var(--panel);
+			border: 1px solid rgba(255,255,255,0.06);
+			border-radius: 18px;
+			padding: 22px;
+			min-height: 260px;
+			box-shadow: 0 20px 45px rgba(0,0,0,0.45);
+		}
+
+		.panel h2 {
+			margin: 0 0 15px;
+			font-size: 1.1rem;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			color: rgba(255,255,255,0.75);
+		}
+
+		.job-list {
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+			max-height: 280px;
+			overflow-y: auto;
+		}
+
+		.job-item {
+			border: 1px solid rgba(255,255,255,0.08);
+			border-radius: 12px;
+			padding: 12px 14px;
+			background: rgba(255,255,255,0.02);
+		}
+
+		.job-title {
+			font-weight: 600;
+		}
+
+		.job-meta {
+			font-size: 0.85rem;
+			color: rgba(255,255,255,0.65);
+			margin-top: 4px;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+		}
+
+		thead {
+			font-size: 0.85rem;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			color: rgba(255,255,255,0.55);
+		}
+
+		th, td {
+			padding: 10px 8px;
+			border-bottom: 1px dashed rgba(255,255,255,0.08);
+		}
+
+		tbody tr:hover {
+			background: rgba(255,255,255,0.02);
+		}
+
+		.status-pill {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 4px 10px;
+			border-radius: 999px;
+			font-size: 0.8rem;
+			font-weight: 600;
+		}
+
+		.status-success {
+			background: rgba(46, 204, 113, 0.15);
+			color: var(--success);
+		}
+
+		.status-failed {
+			background: rgba(255, 107, 107, 0.15);
+			color: var(--danger);
+		}
+
+		.chart-container {
+			position: relative;
+			height: 260px;
+		}
+
+		.empty-state {
+			padding: 40px 20px;
+			text-align: center;
+			color: rgba(255,255,255,0.5);
+			font-size: 0.95rem;
+		}
+
+		.refresh-meta {
+			margin-top: 12px;
+			font-size: 0.85rem;
+			color: rgba(255,255,255,0.6);
+		}
+
+		.toast {
+			position: fixed;
+			bottom: 24px;
+			right: 24px;
+			padding: 14px 18px;
+			border-radius: 12px;
+			background: rgba(255, 94, 125, 0.95);
+			color: #fff;
+			font-weight: 600;
+			box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+			opacity: 0;
+			transform: translateY(20px);
+			transition: opacity 0.3s, transform 0.3s;
+		}
+
+		.toast.show {
+			opacity: 1;
+			transform: translateY(0);
+		}
+
+		@media (max-width: 768px) {
+			body { padding: 18px; }
+			.hero { flex-direction: column; align-items: flex-start; }
+			.hero-actions { width: 100%; }
+			.btn { flex: 1; text-align: center; }
+		}
+	</style>
+</head>
+<body>
+	<div class="page">
+		<header class="hero">
+			<div>
+				<h1>Verification Control Tower</h1>
+				<p>Track live verifyta jobs, queue health, and success rates across the full pipeline.</p>
+				<div class="refresh-meta" id="lastUpdated">Waiting for first refresh…</div>
+			</div>
+			<div class="hero-actions">
+				<button class="btn btn-secondary" onclick="window.location.href='/'">↩ Back to Studio</button>
+				<button class="btn btn-primary" id="refreshBtn">⟳ Refresh Now</button>
+			</div>
+		</header>
+
+		<section class="grid" id="topStats">
+			<div class="stat-card">
+				<div class="stat-label">Active Jobs</div>
+				<div class="stat-value" id="activeCount">0</div>
+				<div class="stat-trend">Currently running verifications</div>
+			</div>
+			<div class="stat-card">
+				<div class="stat-label">Queued</div>
+				<div class="stat-value" id="queuedCount">0</div>
+				<div class="stat-trend">Awaiting worker slot</div>
+			</div>
+			<div class="stat-card">
+				<div class="stat-label">Completed</div>
+				<div class="stat-value" id="completedCount">0</div>
+				<div class="stat-trend">All-time successful runs</div>
+			</div>
+			<div class="stat-card">
+				<div class="stat-label">Success Rate</div>
+				<div class="stat-value" id="successRate">0%</div>
+				<div class="stat-trend">First pass + repairs</div>
+			</div>
+		</section>
+
+		<section class="grid">
+			<div class="stat-card">
+				<div class="stat-label">First-Pass Success</div>
+				<div class="stat-value" id="firstPassRate">0%</div>
+				<div class="stat-trend">Verifications that passed without repair</div>
+			</div>
+			<div class="stat-card">
+				<div class="stat-label">Repair Convergence</div>
+				<div class="stat-value" id="repairRate">0%</div>
+				<div class="stat-trend">LLM repair success across attempts</div>
+			</div>
+			<div class="stat-card">
+				<div class="stat-label">Avg Execution Time</div>
+				<div class="stat-value" id="avgTime">0s</div>
+				<div class="stat-trend">Rolling average across runs</div>
+			</div>
+		</section>
+
+		<section class="panels">
+			<article class="panel">
+				<h2>Live Jobs</h2>
+				<div id="activeJobs" class="job-list"></div>
+			</article>
+			<article class="panel">
+				<h2>Queue Snapshot</h2>
+				<div id="queueJobs" class="job-list"></div>
+			</article>
+			<article class="panel" style="grid-column: span 2;">
+				<h2>Recent History</h2>
+				<div class="table-wrapper">
+					<table>
+						<thead>
+							<tr>
+								<th>Job</th>
+								<th>Task</th>
+								<th>Status</th>
+								<th>Properties</th>
+								<th>Time</th>
+								<th>Duration</th>
+							</tr>
+						</thead>
+						<tbody id="historyBody"></tbody>
+					</table>
+				</div>
+			</article>
+			<article class="panel" style="grid-column: span 2;">
+				<h2>Success Trend</h2>
+				<div class="chart-container">
+					<canvas id="historyChart"></canvas>
+				</div>
+			</article>
+		</section>
+	</div>
+
+	<div class="toast" id="toast"></div>
+
+	<script>
+		const REFRESH_MS = 7000;
+		let refreshTimer = null;
+		let historyChart = null;
+
+		const refreshBtn = document.getElementById('refreshBtn');
+		const toastEl = document.getElementById('toast');
+
+		refreshBtn.addEventListener('click', () => reloadDashboard(true));
+
+		async function reloadDashboard(forceImmediate = false) {
+			if (refreshBtn.disabled && !forceImmediate) return;
+			refreshBtn.disabled = true;
+			refreshBtn.textContent = 'Refreshing…';
+			try {
+				const [dashResp, metricsResp] = await Promise.all([
+					fetch('/dashboard'),
+					fetch('/metrics')
+				]);
+				if (!dashResp.ok) throw new Error('Unable to load /dashboard');
+				if (!metricsResp.ok) throw new Error('Unable to load /metrics');
+
+				const dashboard = await dashResp.json();
+				const metrics = await metricsResp.json();
+				updateOverview(dashboard, metrics);
+				renderActiveJobs(dashboard.active_jobs_detail);
+				renderQueue(dashboard.queued_jobs_detail);
+				renderHistory(dashboard.recent_history);
+				renderChart(metrics.recent_history);
+				updateLastUpdated();
+			} catch (error) {
+				console.error(error);
+				showToast(error.message || 'Unknown error fetching dashboard data');
+			} finally {
+				refreshBtn.disabled = false;
+				refreshBtn.textContent = '⟳ Refresh Now';
+			}
+		}
+
+		function updateOverview(dash, metrics) {
+			document.getElementById('activeCount').textContent = dash.active_jobs || 0;
+			document.getElementById('queuedCount').textContent = dash.queued_jobs || 0;
+			document.getElementById('completedCount').textContent = dash.completed_jobs || 0;
+			document.getElementById('successRate').textContent = formatPercent(dash.success_rate);
+			document.getElementById('firstPassRate').textContent = formatPercent(metrics.first_pass_success_rate);
+			document.getElementById('repairRate').textContent = formatPercent(metrics.repair_convergence_rate);
+			document.getElementById('avgTime').textContent = `${metrics.avg_execution_time || dash.avg_execution_time || 0}s`;
+		}
+
+		function renderActiveJobs(active = []) {
+			const container = document.getElementById('activeJobs');
+			if (!active || active.length === 0) {
+				container.innerHTML = '<div class="empty-state">No jobs are running right now.</div>';
+				return;
+			}
+			container.innerHTML = active.map(job => `
+				<div class="job-item">
+					<div class="job-title">${job.task_name || 'Unnamed Task'}</div>
+					<div class="job-meta">ID: ${job.job_id} · Started: ${job.started_at || '—'} · ${job.language?.toUpperCase() || 'ADA'}</div>
+					<div class="job-meta">Status: ${job.status || 'running'}</div>
+				</div>
+			`).join('');
+		}
+
+		function renderQueue(queue = []) {
+			const container = document.getElementById('queueJobs');
+			if (!queue || queue.length === 0) {
+				container.innerHTML = '<div class="empty-state">Queue is clear ✔</div>';
+				return;
+			}
+			container.innerHTML = queue.map(job => `
+				<div class="job-item">
+					<div class="job-title">${job.task_name || 'Pending Task'}</div>
+					<div class="job-meta">Waiting as ${job.job_id} · ${job.language?.toUpperCase() || 'ADA'}</div>
+				</div>
+			`).join('');
+		}
+
+		function renderHistory(history = []) {
+			const body = document.getElementById('historyBody');
+			if (!history || history.length === 0) {
+				body.innerHTML = `<tr><td colspan="6" class="empty-state">No verification runs recorded yet.</td></tr>`;
+				return;
+			}
+			body.innerHTML = history.map(entry => {
+				const statusClass = entry.success ? 'status-success' : 'status-failed';
+				const statusLabel = entry.success ? 'Passed' : 'Failed';
+				const props = `${entry.properties_verified || 0}/${(entry.properties_verified || 0) + (entry.properties_failed || 0)}`;
+				return `
+					<tr>
+						<td>${entry.job_id}</td>
+						<td>${entry.task_name || '—'}</td>
+						<td><span class="status-pill ${statusClass}">${statusLabel}</span></td>
+						<td>${props}</td>
+						<td>${formatTimestamp(entry.timestamp)}</td>
+						<td>${formatDuration(entry.execution_time)}</td>
+					</tr>
+				`;
+			}).join('');
+		}
+
+		function renderChart(history = []) {
+			const labels = history.map(item => formatTimestamp(item.timestamp, true));
+			const successSeries = history.map(item => item.success ? 1 : 0);
+			const durationSeries = history.map(item => item.execution_time || 0);
+
+			const ctx = document.getElementById('historyChart').getContext('2d');
+			if (historyChart) {
+				historyChart.data.labels = labels;
+				historyChart.data.datasets[0].data = successSeries;
+				historyChart.data.datasets[1].data = durationSeries;
+				historyChart.update();
+				return;
+			}
+
+			historyChart = new Chart(ctx, {
+				data: {
+					labels,
+					datasets: [
+						{
+							type: 'bar',
+							label: 'Success (1=pass)',
+							data: successSeries,
+							backgroundColor: 'rgba(123, 126, 255, 0.5)',
+							borderRadius: 6
+						},
+						{
+							type: 'line',
+							label: 'Execution Time (s)',
+							data: durationSeries,
+							borderColor: '#ff7eb3',
+							borderWidth: 2,
+							fill: false,
+							tension: 0.35,
+							yAxisID: 'y1'
+						}
+					]
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					scales: {
+						y: {
+							beginAtZero: true,
+							ticks: { stepSize: 1 }
+						},
+						y1: {
+							beginAtZero: true,
+							position: 'right',
+							grid: { drawOnChartArea: false }
+						}
+					},
+					plugins: {
+						legend: {
+							labels: { color: '#e4e6f1' }
+						}
+					}
+				}
+			});
+		}
+
+		function updateLastUpdated() {
+			const stamp = new Date().toLocaleTimeString();
+			document.getElementById('lastUpdated').textContent = `Last refreshed at ${stamp}`;
+		}
+
+		function formatPercent(value) {
+			const num = Number(value);
+			if (Number.isNaN(num)) return '0%';
+			return `${num.toFixed(1)}%`;
+		}
+
+		function formatTimestamp(ts, short = false) {
+			if (!ts) return '—';
+			const date = new Date(ts);
+			if (isNaN(date.getTime())) return ts;
+			return short ? date.toLocaleTimeString() : date.toLocaleString();
+		}
+
+		function formatDuration(seconds) {
+			if (seconds === undefined || seconds === null) return '0s';
+			const value = Number(seconds);
+			if (Number.isNaN(value)) return '0s';
+			return `${value.toFixed(2)}s`;
+		}
+
+		function showToast(message) {
+			toastEl.textContent = message;
+			toastEl.classList.add('show');
+			setTimeout(() => toastEl.classList.remove('show'), 4000);
+		}
+
+		function scheduleAutoRefresh() {
+			if (refreshTimer) clearInterval(refreshTimer);
+			refreshTimer = setInterval(reloadDashboard, REFRESH_MS);
+		}
+
+		scheduleAutoRefresh();
+		reloadDashboard(true);
+	</script>
+</body>
+</html>

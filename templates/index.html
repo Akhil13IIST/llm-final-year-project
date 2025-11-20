@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ada → UPPAAL Formal Verification System</title>
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 30px;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 1.4em;
+            margin: 0;
+            font-weight: 500;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.2);
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+        
+        .nav-links a:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-1px);
+        }
+        
+        .nav-links a.highlight {
+            background: #ffc107;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+            min-height: 600px;
+        }
+        
+        .input-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .output-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .section-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .ada-textarea {
+            width: 100%;
+            height: 400px;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            background: white;
+        }
+        
+        .ada-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .verify-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        
+        .verify-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .verify-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .example-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .example-btn {
+            background: #e9ecef;
+            border: 1px solid #ced4da;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .example-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .lang-tab {
+            background: #e9ecef;
+            border: 2px solid #dee2e6;
+            padding: 10px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            flex: 1;
+        }
+        
+        .lang-tab:hover {
+            background: #d3d6da;
+        }
+        
+        .lang-tab.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .nl-section {
+            background: #f0f8ff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 2px solid #4169e1;
+        }
+        
+        .nl-title {
+            color: #4169e1;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .nl-textarea {
+            width: 100%;
+            height: 80px;
+            border: 1px solid #4169e1;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 12px;
+            resize: vertical;
+        }
+        
+        .nl-btn {
+            background: #4169e1;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            margin-top: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .nl-btn:hover {
+            background: #3557c7;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .results {
+            display: none;
+        }
+        
+        .results.show {
+            display: block;
+        }
+        
+        .result-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .result-card.success {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+        
+        .result-card.error {
+            border-color: #dc3545;
+            background: #fff5f5;
+        }
+        
+        .task-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .task-stat {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+        
+        .task-stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .task-stat-label {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .xml-display {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            overflow-x: auto;
+            margin: 15px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .uppaal-output {
+            background: #1a1a1a;
+            color: #00ff00;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            line-height: 1.3;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .download-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin: 5px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* NEW: Enhanced visualizations for backend data */
+        .task-issues-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .task-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            border-left: 4px solid #28a745;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .task-card.error { border-left-color: #dc3545; background: #fff5f5; }
+        .task-card.warning { border-left-color: #ffc107; background: #fffef0; }
+        .task-card.ok { border-left-color: #28a745; background: #f8fff9; }
+        
+        .task-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .task-icon {
+            font-size: 24px;
+        }
+        
+        .priority-badge {
+            background: #667eea;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .priority-badge.auto-fixed {
+            background: #ffc107;
+            color: #000;
+        }
+        
+        .repair-trail {
+            background: #e7f3ff;
+            border-left: 3px solid #2196f3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .repair-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #cce5ff;
+        }
+        
+        .repair-item:last-child { border-bottom: none; }
+        
+        .repair-type {
+            font-weight: bold;
+            color: #0056b3;
+            font-size: 12px;
+        }
+        
+        .schedulability-panel {
+            background: linear-gradient(135deg, #667eea20, #764ba220);
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .utilization-bar {
+            background: #e9ecef;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            margin: 10px 0;
+        }
+        
+        .utilization-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            transition: width 0.5s ease;
+        }
+        
+        .utilization-fill.high { background: linear-gradient(90deg, #ffc107, #ff9800); }
+        .utilization-fill.critical { background: linear-gradient(90deg, #dc3545, #c82333); }
+        
+        .ll-bound-indicator {
+            position: absolute;
+            height: 100%;
+            width: 2px;
+            background: #dc3545;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .property-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .property-item {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            border-left: 3px solid #28a745;
+        }
+        
+        .property-item.failed {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+        
+        .iterations-badge {
+            background: #17a2b8;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            display: inline-block;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Real-Time Verification System</h1>
+            <div class="nav-links">
+                <a href="/autonomous" class="highlight">🤖 Autonomous Pipeline</a>
+                <a href="/dashboard">📊 Dashboard</a>
+                <a href="/editor">✏️ Task Editor</a>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <div class="section-title">
+                    Code Input
+                </div>
+                
+                <div class="language-tabs" style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button class="lang-tab active" onclick="switchLanguage('ada')" id="adaTab">Ada</button>
+                    <button class="lang-tab" onclick="switchLanguage('python')" id="pythonTab">Python</button>
+                </div>
+                
+                <div class="example-buttons">
+                    <button class="example-btn" onclick="loadExample('navigation')">Navigation Task</button>
+                    <button class="example-btn" onclick="loadExample('control')">Control System</button>
+                    <button class="example-btn" onclick="loadExample('sensor')">Sensor Task</button>
+                </div>
+                
+                <div class="nl-section">
+                    <h4 class="nl-title">Natural Language to Code (LLM)</h4>
+                    <textarea 
+                        id="nlRequirement" 
+                        class="nl-textarea"
+                        placeholder="Describe your system: 'Navigation task, 20ms period, 15ms deadline'"
+                    ></textarea>
+                    <button onclick="generateFromNL()" class="nl-btn" id="generateBtn">
+                        Generate Code
+                    </button>
+                </div>
+
+                <textarea 
+                    id="adaCode" 
+                    class="ada-textarea" 
+                    placeholder="Paste your Ada real-time task code here...
+
+Example:
+task Navigation_Task is
+   pragma Priority(1);
+end Navigation_Task;
+
+task body Navigation_Task is
+   Period : constant Time_Span := Milliseconds(20);
+   Deadline : constant Time_Span := Milliseconds(15);
+   Next_Release : Time := Clock;
+begin
+   loop
+      delay until Next_Release;
+      -- Navigation logic here
+      Next_Release := Next_Release + Period;
+   end loop;
+end Navigation_Task;"
+                ></textarea>
+                
+                <button class="verify-btn" id="verifyBtn" onclick="verifyCode()">
+                    Verify System
+                </button>
+            </div>
+            
+            <div class="output-section">
+                <div class="section-title">
+                    📊 Verification Results
+                </div>
+                
+                <div class="loading" id="loading">
+                    <p>🔄 Processing Ada code...</p>
+                    <p>Generating UPPAAL model...</p>
+                    <p>Running formal verification...</p>
+                </div>
+                
+                <div class="results" id="results">
+                    <!-- Results will be populated here -->
+                </div>
+                
+                <div id="defaultMessage" style="text-align: center; padding: 50px; color: #6c757d;">
+                    <h3>🎯 Ready for Verification</h3>
+                    <p>Enter Ada code and click "Generate UPPAAL & Verify" to see:</p>
+                    <ul style="text-align: left; display: inline-block; margin-top: 15px;">
+                        <li>✅ Extracted task parameters</li>
+                        <li>🔧 Generated UPPAAL XML model</li>
+                        <li>🧮 Real mathematical verification results</li>
+                        <li>📁 Downloadable files</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentLanguage = 'ada';
+        
+        function switchLanguage(lang) {
+            currentLanguage = lang;
+            
+            // Update tab active state
+            document.querySelectorAll('.lang-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(lang + 'Tab').classList.add('active');
+            
+            // Update textarea placeholder
+            const textarea = document.getElementById('adaCode');
+            if (lang === 'python') {
+                textarea.placeholder = `Paste your Python real-time task code here...
+
+Example:
+class NavigationTask:
+    PERIOD = 20  # milliseconds
+    DEADLINE = 15
+    EXECUTION_TIME = 12
+    PRIORITY = 10
+    
+    def run(self):
+        # Task logic here
+        pass`;
+            } else {
+                textarea.placeholder = `Paste your Ada real-time task code here...
+
+Example:
+task Navigation_Task is
+   pragma Priority(1);
+end Navigation_Task;
+
+task body Navigation_Task is
+   Period : constant Time_Span := Milliseconds(20);
+   Deadline : constant Time_Span := Milliseconds(15);
+   Next_Release : Time := Clock;
+begin
+   loop
+      delay until Next_Release;
+      -- Critical navigation processing
+      Next_Release := Next_Release + Period;
+   end loop;
+end Navigation_Task;`;
+            }
+        }
+        
+        // Store the last natural language requirement for repair functionality
+        let lastNLRequirement = '';
+
+        async function generateFromNL() {
+    const nlRequirement = document.getElementById('nlRequirement').value.trim();
+    
+    if (!nlRequirement) {
+        alert('Please enter a natural language requirement!');
+        return;
+    }
+    
+    // Store for later repair if needed
+    lastNLRequirement = nlRequirement;
+    
+    try {
+        const endpoint = currentLanguage === 'python' ? '/generate_python' : '/generate_ada';
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ requirement: nlRequirement, language: currentLanguage })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            const codeKey = currentLanguage === 'python' ? 'python_code' : 'ada_code';
+            document.getElementById('adaCode').value = result[codeKey];
+            alert('Code generated! You can now verify it.');
+        } else {
+            alert('Generation failed: ' + (result.error || 'Unknown error'));
+        }
+    } catch (error) {
+        alert('Network error: ' + error.message);
+    }
+}
+
+        const adaExamples = {
+            navigation: `task Navigation_Task is
+   pragma Priority(1);
+end Navigation_Task;
+
+task body Navigation_Task is
+   Period : constant Time_Span := Milliseconds(20);
+   Deadline : constant Time_Span := Milliseconds(15);
+   Execution_Time : constant Time_Span := Milliseconds(12);
+   Next_Release : Time := Clock;
+begin
+   loop
+      delay until Next_Release;
+      -- Critical navigation processing
+      Next_Release := Next_Release + Period;
+   end loop;
+end Navigation_Task;`,
+            
+            control: `task Control_Task is
+   pragma Priority(2);
+end Control_Task;
+
+task body Control_Task is
+   Period : constant Time_Span := Milliseconds(10);
+   Deadline : constant Time_Span := Milliseconds(8);
+   Execution_Time : constant Time_Span := Milliseconds(6);
+   Next_Release : Time := Clock;
+begin
+   loop
+      delay until Next_Release;
+      -- Control system processing
+      Next_Release := Next_Release + Period;
+   end loop;
+end Control_Task;`,
+            
+            sensor: `task Sensor_Task is
+   pragma Priority(1);
+end Sensor_Task;
+
+task body Sensor_Task is
+   Period : constant Time_Span := Milliseconds(50);
+   Deadline : constant Time_Span := Milliseconds(40);
+   Execution_Time : constant Time_Span := Milliseconds(30);
+   Next_Release : Time := Clock;
+begin
+   loop
+      delay until Next_Release;
+      -- Sensor data processing
+      Next_Release := Next_Release + Period;
+   end loop;
+end Sensor_Task;`
+        };
+        
+        const pythonExamples = {
+            navigation: `class NavigationTask:
+    """Critical navigation control task"""
+    PERIOD = 20  # milliseconds
+    DEADLINE = 15
+    EXECUTION_TIME = 12
+    PRIORITY = 10  # higher = more important
+    
+    def run(self):
+        # Navigation algorithm
+        self.calculate_path()
+        self.update_position()
+        
+    def calculate_path(self):
+        pass`,
+            
+            control: `class ControlTask:
+    """High-frequency control system"""
+    PERIOD = 10  # milliseconds
+    DEADLINE = 8
+    EXECUTION_TIME = 6
+    PRIORITY = 15
+    
+    def run(self):
+        # Control loop
+        self.read_sensors()
+        self.compute_control()
+        self.apply_actuators()
+        
+    def read_sensors(self):
+        pass`,
+            
+            sensor: `class SensorTask:
+    """Periodic sensor data collection"""
+    PERIOD = 50  # milliseconds
+    DEADLINE = 40
+    EXECUTION_TIME = 30
+    PRIORITY = 5
+    
+    def run(self):
+        # Sensor processing
+        data = self.read_imu()
+        self.filter_data(data)
+        self.publish_data(data)
+        
+    def read_imu(self):
+        pass`
+        };
+        
+        function loadExample(type) {
+            const examples = currentLanguage === 'python' ? pythonExamples : adaExamples;
+            document.getElementById('adaCode').value = examples[type];
+        }
+        
+        async function verifyCode() {
+            const adaCode = document.getElementById('adaCode').value.trim();
+            
+            if (!adaCode) {
+                alert('Please enter Ada code first!');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('defaultMessage').style.display = 'none';
+            document.getElementById('verifyBtn').disabled = true;
+            document.getElementById('verifyBtn').textContent = '🔄 Verifying...';
+            
+            try {
+                const response = await fetch('/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        ada_code: adaCode,
+                        language: currentLanguage 
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    displayResults(result);
+                } else {
+                    // Check if it's a schedulability error with LLM feedback
+                    if (result.schedulability && result.schedulability.llm_feedback) {
+                        displaySchedulabilityError(result);
+                    } else {
+                        displayError(result.error || 'Unknown error occurred');
+                    }
+                }
+            } catch (error) {
+                displayError('Network error: ' + error.message);
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('verifyBtn').disabled = false;
+                document.getElementById('verifyBtn').textContent = 'Verify System';
+            }
+        }
+        
+        function displayResults(result) {
+            const resultsDiv = document.getElementById('results');
+            const verification = result.verification;
+            const taskInfo = result.task_info;
+            
+            const statusClass = verification.success ? 'success' : 'error';
+            const statusBadge = verification.success ? 'status-success' : 'status-error';
+            const statusText = verification.success ? 'VERIFIED ✅' : 'FAILED ❌';
+            
+            let html = '';
+            
+            // Priority Report & Task Issues Visualization
+            if (result.task_issues && result.task_issues.length > 0) {
+                html += `
+                    <div class="result-card">
+                        <h3>📋 Per-Task Status Analysis</h3>
+                        <div class="task-issues-grid">
+                `;
+                
+                result.task_issues.forEach(task => {
+                    const cardClass = task.status === 'error' ? 'error' : 
+                                     (task.priority_warning || task.priority_auto_fixed) ? 'warning' : 'ok';
+                    const icon = task.status === 'error' ? '❌' : 
+                                task.priority_warning ? '⚠️' : '✅';
+                    
+                    html += `
+                        <div class="task-card ${cardClass}">
+                            <div class="task-card-header">
+                                <span class="task-icon">${icon}</span>
+                                <span class="priority-badge ${task.priority_auto_fixed ? 'auto-fixed' : ''}">
+                                    P${task.priority} ${task.priority_auto_fixed ? '(Auto-fixed)' : ''}
+                                </span>
+                            </div>
+                            <strong>${task.task_name}</strong>
+                            <div style="font-size: 11px; color: #6c757d; margin-top: 5px;">
+                                ${task.priority_auto_fixed ? '🔧 Priority auto-corrected by RM algorithm' : ''}
+                                ${task.priority_warning ? '⚠️ Priority adjusted' : ''}
+                                ${task.priority_error ? '❌ Priority validation failed' : ''}
+                                ${task.status === 'ok' ? '✅ All checks passed' : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Properties Being Verified Section - NEW!
+            if (verification.properties_checked && verification.properties_checked.length > 0) {
+                html += `
+                    <div class="result-card">
+                        <h3>🎯 Properties Being Verified</h3>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 10px;">
+                `;
+                
+                verification.properties_checked.forEach((prop, idx) => {
+                    const propResult = verification.property_results?.[idx];
+                    const satisfied = propResult?.satisfied;
+                    const statusIcon = satisfied === true ? '✅' : satisfied === false ? '❌' : '⏳';
+                    const statusClass = satisfied === true ? 'success' : satisfied === false ? 'error' : 'pending';
+                    
+                    html += `
+                        <div style="background: white; padding: 12px; margin: 8px 0; border-radius: 6px; border-left: 4px solid ${satisfied === true ? '#4caf50' : satisfied === false ? '#f44336' : '#2196f3'};">
+                            <div style="display: flex; justify-content: space-between; align-items: start; gap: 10px;">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: #333; margin-bottom: 4px;">
+                                        ${statusIcon} ${prop.category || 'PROPERTY'} 
+                                        <span style="background: ${prop.priority === 'CRITICAL' ? '#f44336' : prop.priority === 'HIGH' ? '#ff9800' : '#2196f3'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; margin-left: 8px;">
+                                            ${prop.priority || 'MEDIUM'}
+                                        </span>
+                                    </div>
+                                    <code style="background: #f5f5f5; padding: 4px 8px; border-radius: 4px; font-size: 12px; display: inline-block; margin: 4px 0;">
+                                        ${escapeHtml(prop.formula || prop)}
+                                    </code>
+                                    <div style="font-size: 11px; color: #666; margin-top: 4px;">
+                                        ${prop.comment || 'No description'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Schedulability Analysis Visualization
+            if (result.schedulability) {
+                const sched = result.schedulability;
+                const utilPct = parseFloat(sched.total_utilization);
+                const llPct = parseFloat(sched.ll_bound);
+                const utilClass = utilPct > llPct ? 'critical' : utilPct > 70 ? 'high' : '';
+                
+                html += `
+                    <div class="schedulability-panel">
+                        <h3>📊 Schedulability Analysis</h3>
+                        <p><strong>Total Utilization:</strong> ${sched.total_utilization} 
+                           ${sched.is_schedulable ? '✅ Schedulable' : '❌ Not Schedulable'}</p>
+                        <p><strong>Liu & Layland Bound:</strong> ${sched.ll_bound}</p>
+                        
+                        <div class="utilization-bar">
+                            <div class="utilization-fill ${utilClass}" style="width: ${Math.min(utilPct, 100)}%">
+                                ${utilPct}%
+                            </div>
+                            <div class="ll-bound-indicator" style="left: ${llPct}%"></div>
+                        </div>
+                        <div style="font-size: 11px; color: #6c757d; margin-top: 5px;">
+                            <span style="color: #dc3545;">▮</span> Liu & Layland Bound (${llPct}%)
+                        </div>
+                        
+                        ${sched.warnings && sched.warnings.length > 0 ? `
+                            <div style="margin-top: 10px;">
+                                <strong>⚠️ Warnings:</strong>
+                                <ul style="margin: 5px 0; padding-left: 20px;">
+                                    ${sched.warnings.map(w => `<li style="font-size: 12px;">${w}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+            
+            // Repair Trail Visualization
+            if (result.repair_trail && result.repair_trail.length > 0) {
+                html += `
+                    <div class="repair-trail">
+                        <h4>🔧 Auto-Repair Trail</h4>
+                        <p style="font-size: 12px; color: #666; margin-bottom: 10px;">
+                            The system automatically applied the following corrections:
+                        </p>
+                `;
+                
+                result.repair_trail.forEach(repair => {
+                    html += `
+                        <div class="repair-item">
+                            <div class="repair-type">${repair.type.toUpperCase().replace(/_/g, ' ')}</div>
+                            <div style="font-size: 12px; margin-top: 3px;">
+                                <strong>${repair.task}:</strong> ${repair.action}
+                            </div>
+                            <div style="font-size: 11px; color: #666; margin-top: 2px;">
+                                Reason: ${repair.reason}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            }
+            
+            // LLM Repair Iterations (if repaired)
+            if (result.repair_converged) {
+                html += `
+                    <div class="result-card success">
+                        <h3>🤖 LLM Repair Successful</h3>
+                        <span class="iterations-badge">Converged in ${result.iterations} iteration(s)</span>
+                        <p style="margin-top: 10px;">Original code had verification errors. The LLM automatically repaired it!</p>
+                        
+                        ${result.repair_history ? `
+                            <details style="margin-top: 15px;">
+                                <summary style="cursor: pointer; font-weight: bold;">View Repair History</summary>
+                                ${result.repair_history.map((h, i) => `
+                                    <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                                        <strong>Iteration ${h.iteration}:</strong> 
+                                        ${h.success ? '✅ Success' : '❌ Failed'} - 
+                                        ${h.properties_verified} properties verified in ${h.execution_time}s
+                                    </div>
+                                `).join('')}
+                            </details>
+                        ` : ''}
+                    </div>
+                `;
+            }
+            
+            // Task Info
+            html += `
+                <div class="result-card ${statusClass}">
+                    <h3>🎯 Task Analysis Results</h3>
+                    <div class="status-badge ${statusBadge}">${statusText}</div>
+                    
+                    <div class="task-info">
+                        <div class="task-stat">
+                            <div class="task-stat-value">${taskInfo.task_name || 'N/A'}</div>
+                            <div class="task-stat-label">Task Name</div>
+                        </div>
+                        <div class="task-stat">
+                            <div class="task-stat-value">${taskInfo.period || 'N/A'}ms</div>
+                            <div class="task-stat-label">Period</div>
+                        </div>
+                        <div class="task-stat">
+                            <div class="task-stat-value">${taskInfo.deadline || taskInfo.period || 'N/A'}ms</div>
+                            <div class="task-stat-label">Deadline</div>
+                        </div>
+                        <div class="task-stat">
+                            <div class="task-stat-value">${taskInfo.priority || 'N/A'}</div>
+                            <div class="task-stat-label">Priority</div>
+                        </div>
+                        <div class="task-stat">
+                            <div class="task-stat-value">${taskInfo.utilization ? (taskInfo.utilization * 100).toFixed(1) + '%' : 'N/A'}</div>
+                            <div class="task-stat-label">CPU Usage</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // UPPAAL Properties Breakdown
+            if (verification.properties_verified || verification.properties_failed) {
+                const totalProps = (verification.properties_verified || 0) + (verification.properties_failed || 0);
+                html += `
+                    <div class="result-card">
+                        <h3>🔍 Verification Properties</h3>
+                        <p><strong>Total Properties Checked:</strong> ${totalProps}</p>
+                        <div class="property-list">
+                            ${Array(verification.properties_verified || 0).fill(0).map((_, i) => `
+                                <div class="property-item">
+                                    <span>✅</span>
+                                    <span>Property ${i + 1} verified</span>
+                                </div>
+                            `).join('')}
+                            ${Array(verification.properties_failed || 0).fill(0).map((_, i) => `
+                                <div class="property-item failed">
+                                    <span>❌</span>
+                                    <span>Property ${verification.properties_verified + i + 1} failed</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Generated UPPAAL XML
+            html += `
+                <div class="result-card">
+                    <h3>🔧 Generated UPPAAL Model</h3>
+                    <div class="xml-display">${escapeHtml(result.xml_content)}</div>
+                </div>
+            `;
+            
+            // UPPAAL Output
+            html += `
+                <div class="result-card ${statusClass}">
+                    <h3>🧮 UPPAAL Verification Results</h3>
+                    <p><strong>Properties Verified:</strong> ${verification.properties_verified || 0}</p>
+                    <p><strong>Properties Failed:</strong> ${verification.properties_failed || 0}</p>
+                    <p><strong>Execution Time:</strong> ${verification.execution_time || 0}s</p>
+                    <p><strong>Timestamp:</strong> ${result.timestamp}</p>
+                    
+                    <h4>📊 UPPAAL Output:</h4>
+                    <div class="uppaal-output">${escapeHtml(verification.uppaal_output || verification.error || 'No output')}</div>
+                </div>
+            `;
+            
+            resultsDiv.innerHTML = html;
+            resultsDiv.classList.add('show');
+        }
+        
+        function displayError(error) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <div class="result-card error">
+                    <h3>❌ Error</h3>
+                    <p>${error}</p>
+                </div>
+            `;
+            resultsDiv.classList.add('show');
+        }
+        
+        function displaySchedulabilityError(result) {
+            const resultsDiv = document.getElementById('results');
+            const sched = result.schedulability;
+            const llmFeedback = sched.llm_feedback;
+            
+            let html = `
+                <div class="result-card error">
+                    <h3>❌ System is Not Schedulable</h3>
+                    
+                    <div style="background: #fff3cd; border-left: 4px solid #ff9800; padding: 15px; margin: 15px 0; border-radius: 8px;">
+                        <h4 style="color: #ff9800; margin: 0 0 10px 0;">📊 Schedulability Analysis</h4>
+                        <p style="margin: 5px 0;"><strong>Total Utilization:</strong> ${sched.total_utilization}</p>
+                        <p style="margin: 5px 0;"><strong>Liu & Layland Bound:</strong> ${sched.ll_bound}</p>
+                        <p style="margin: 5px 0; color: #d32f2f;"><strong>Status:</strong> ❌ NOT SCHEDULABLE</p>
+                    </div>
+            `;
+            
+            if (llmFeedback) {
+                html += `
+                    <div style="background: #e3f2fd; border-left: 4px solid #2196F3; padding: 15px; margin: 15px 0; border-radius: 8px;">
+                        <h4 style="color: #1976D2; margin: 0 0 10px 0; display: flex; align-items: center; gap: 8px;">
+                            🤖 LLM Analysis
+                        </h4>
+                        <div style="margin: 10px 0;">
+                            <strong style="color: #0d47a1;">Explanation:</strong>
+                            <p style="margin: 5px 0 0 0; line-height: 1.6;">${escapeHtml(llmFeedback.explanation)}</p>
+                        </div>
+                        <div style="margin: 10px 0;">
+                            <strong style="color: #0d47a1;">Root Cause:</strong>
+                            <p style="margin: 5px 0 0 0; line-height: 1.6;">${escapeHtml(llmFeedback.root_cause)}</p>
+                        </div>
+                    </div>
+                `;
+                
+                if (llmFeedback.suggestions && llmFeedback.suggestions.length > 0) {
+                    html += `
+                        <div style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 15px; margin: 15px 0; border-radius: 8px;">
+                            <h4 style="color: #2e7d32; margin: 0 0 10px 0;">💡 Suggested Fixes</h4>
+                            <ol style="margin: 5px 0 0 20px; padding: 0;">
+                    `;
+                    
+                    llmFeedback.suggestions.forEach(suggestion => {
+                        html += `<li style="margin: 8px 0; line-height: 1.6;">${escapeHtml(suggestion)}</li>`;
+                    });
+                    
+                    html += `
+                            </ol>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Add task issues if available
+            if (result.task_issues && result.task_issues.length > 0) {
+                html += `
+                    <div style="margin-top: 20px;">
+                        <h4 style="color: #495057; margin: 0 0 10px 0;">📋 Task Breakdown</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                `;
+                
+                result.task_issues.forEach(task => {
+                    const utilizationColor = parseFloat(task.utilization) > 70 ? '#d32f2f' : 
+                                            parseFloat(task.utilization) > 50 ? '#ff9800' : '#4caf50';
+                    
+                    html += `
+                        <div style="background: white; border: 2px solid #e0e0e0; border-radius: 8px; padding: 12px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                <strong style="color: #333;">${escapeHtml(task.task_name)}</strong>
+                                <span style="background: ${utilizationColor}; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.85em;">
+                                    ${task.utilization}%
+                                </span>
+                            </div>
+                            <div style="font-size: 0.9em; color: #666;">
+                                <div>Period: ${task.period}ms</div>
+                                <div>Execution: ${task.execution_time}ms</div>
+                                <div>Priority: ${task.priority}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += `</div>`;
+            
+            // Add repair button
+            html += `
+                <div style="margin-top: 20px; text-align: center;">
+                    <button onclick="repairSchedulability()" 
+                            style="background: linear-gradient(45deg, #4caf50, #45a049); 
+                                   color: white; 
+                                   border: none; 
+                                   padding: 15px 30px; 
+                                   font-size: 16px; 
+                                   border-radius: 8px; 
+                                   cursor: pointer; 
+                                   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                                   transition: all 0.3s;">
+                        🔧 Auto-Repair with LLM
+                    </button>
+                    <p style="margin-top: 10px; color: #666; font-size: 0.9em;">
+                        LLM will automatically adjust periods and execution times to make the system schedulable
+                    </p>
+                </div>
+            `;
+            
+            html += `</div>`;
+            
+            resultsDiv.innerHTML = html;
+            resultsDiv.classList.add('show');
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        async function repairSchedulability() {
+            const adaCode = document.getElementById('adaCode').value.trim();
+            
+            if (!adaCode) {
+                alert('No code to repair!');
+                return;
+            }
+            
+            // Show loading state
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '🔄 Repairing...';
+            button.style.opacity = '0.6';
+            
+            try {
+                // Get the natural language requirement
+                const nlRequirement = lastNLRequirement || document.getElementById('nlRequirement').value.trim();
+                
+                if (!nlRequirement) {
+                    alert('❌ Please enter the original requirement in the "Natural Language to Code" section first!');
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                    button.style.opacity = '1';
+                    return;
+                }
+                
+                const response = await fetch('/repair_schedulability', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        code: adaCode,
+                        language: 'ada',
+                        nl_requirement: nlRequirement
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // Update code editor with repaired code
+                    document.getElementById('adaCode').value = result.repaired_code;
+                    
+                    // Show success message with comparison
+                    displayRepairResults(result);
+                } else {
+                    alert('❌ Repair failed: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Network error: ' + error.message);
+            } finally {
+                button.disabled = false;
+                button.innerHTML = originalText;
+                button.style.opacity = '1';
+            }
+        }
+        
+        function displayRepairResults(result) {
+            const resultsDiv = document.getElementById('results');
+            
+            let html = `
+                <div class="result-card success">
+                    <h3>✅ Code Successfully Repaired!</h3>
+                    
+                    <div style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 15px; margin: 15px 0; border-radius: 8px;">
+                        <h4 style="color: #2e7d32; margin: 0 0 10px 0;">🎉 System is Now Schedulable!</h4>
+                        <p style="margin: 5px 0;"><strong>New Utilization:</strong> ${result.repaired.utilization} (was ${result.original.utilization})</p>
+                        <p style="margin: 5px 0;"><strong>Schedulability Bound:</strong> ${result.repaired.bound}</p>
+                        <p style="margin: 5px 0; color: #4caf50;"><strong>Utilization Reduction:</strong> ${result.improvements.utilization_reduction}</p>
+                    </div>
+                    
+                    <div style="margin: 20px 0;">
+                        <h4 style="color: #495057; margin: 0 0 10px 0;">📊 Before vs After Comparison</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div>
+                                <h5 style="color: #d32f2f; margin: 0 0 10px 0;">❌ Original (Not Schedulable)</h5>
+                                <div style="background: #ffebee; border: 2px solid #f44336; border-radius: 8px; padding: 12px;">
+                                    <p style="margin: 5px 0;"><strong>Utilization:</strong> ${result.original.utilization}</p>
+            `;
+            
+            result.original.tasks.forEach(task => {
+                html += `
+                    <div style="background: white; margin: 8px 0; padding: 8px; border-radius: 4px; font-size: 0.9em;">
+                        <strong>${escapeHtml(task.task_name)}</strong><br>
+                        Period: ${task.period}ms | Exec: ${task.execution_time}ms | Util: ${task.utilization}
+                    </div>
+                `;
+            });
+            
+            html += `
+                                </div>
+                            </div>
+                            <div>
+                                <h5 style="color: #2e7d32; margin: 0 0 10px 0;">✅ Repaired (Schedulable)</h5>
+                                <div style="background: #e8f5e9; border: 2px solid #4caf50; border-radius: 8px; padding: 12px;">
+                                    <p style="margin: 5px 0;"><strong>Utilization:</strong> ${result.repaired.utilization}</p>
+            `;
+            
+            result.repaired.tasks.forEach(task => {
+                html += `
+                    <div style="background: white; margin: 8px 0; padding: 8px; border-radius: 4px; font-size: 0.9em;">
+                        <strong>${escapeHtml(task.task_name)}</strong><br>
+                        Period: ${task.period}ms | Exec: ${task.execution_time}ms | Util: ${task.utilization}
+                    </div>
+                `;
+            });
+            
+            html += `
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #fff3cd; border-left: 4px solid #ff9800; padding: 15px; margin: 15px 0; border-radius: 8px;">
+                        <p style="margin: 0;">
+                            <strong>📝 Note:</strong> The repaired code is now in the editor. 
+                            Click <strong>"🔍 Generate UPPAAL & Verify"</strong> to verify the repaired system.
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            resultsDiv.innerHTML = html;
+            resultsDiv.classList.add('show');
+        }
+        
+        // Allow Ctrl+Enter to verify
+        document.getElementById('adaCode').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                verifyCode();
+            }
+        });
+    </script>
+</body>
+</html>

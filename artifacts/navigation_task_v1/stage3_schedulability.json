@@ -1,0 +1,46 @@
+{
+  "status": "PASS",
+  "liu_layland": {
+    "task_utilizations": [
+      {"name": "T_High", "utilization": 0.2666666667},
+      {"name": "T_Medium", "utilization": 0.3},
+      {"name": "T_Low", "utilization": 0.1333333333}
+    ],
+    "total_utilization": 0.7,
+    "bound": 0.7797631497,
+    "verdict": "PASS"
+  },
+  "response_time_analysis": {
+    "tasks": [
+      {
+        "name": "T_High",
+        "deadline_ms": 30,
+        "iterations": [{"iteration": 1, "R_ms": 8}],
+        "verdict": "PASS"
+      },
+      {
+        "name": "T_Medium",
+        "deadline_ms": 100,
+        "iterations": [
+          {"iteration": 1, "R_ms": 38},
+          {"iteration": 2, "R_ms": 46},
+          {"iteration": 3, "R_ms": 46}
+        ],
+        "verdict": "PASS"
+      },
+      {
+        "name": "T_Low",
+        "deadline_ms": 150,
+        "iterations": [
+          {"iteration": 1, "R_ms": 58},
+          {"iteration": 2, "R_ms": 66},
+          {"iteration": 3, "R_ms": 74},
+          {"iteration": 4, "R_ms": 74}
+        ],
+        "verdict": "PASS"
+      }
+    ],
+    "overall_verdict": "PASS"
+  },
+  "auto_fixes": []
+}

@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Verification Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .analysis-section {
+            margin-bottom: 30px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .success-badge { background-color: #28a745; color: white; padding: 5px 15px; border-radius: 15px; }
+        .fail-badge { background-color: #dc3545; color: white; padding: 5px 15px; border-radius: 15px; }
+        .warning-badge { background-color: #ffc107; color: black; padding: 5px 15px; border-radius: 15px; }
+        pre { background-color: #f8f9fa; padding: 15px; border-radius: 5px; }
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .metric-value { font-size: 2.5em; font-weight: bold; }
+        .metric-label { font-size: 0.9em; opacity: 0.9; }
+        .response-time-chart { max-height: 400px; }
+        .property-list { list-style-type: none; padding-left: 0; }
+        .property-list li { padding: 10px; margin: 5px 0; border-left: 4px solid #007bff; background-color: #f8f9fa; }
+        .pattern-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+        .pattern-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .code-snippet {
+            background-color: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">🔬 Enhanced UPPAAL Verification Results</span>
+            <a href="/" class="btn btn-light btn-sm">← Back to Home</a>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Left Column: Main Results -->
+            <div class="col-lg-8">
+                <!-- Verification Summary -->
+                <div class="analysis-section">
+                    <h2>📊 Verification Summary</h2>
+                    <div id="verificationSummary"></div>
+                </div>
+
+                <!-- Response Time Analysis -->
+                <div class="analysis-section">
+                    <h2>⏱️ Response Time Analysis</h2>
+                    <div id="responseTimeAnalysis"></div>
+                    <canvas id="responseTimeChart" class="response-time-chart mt-3"></canvas>
+                </div>
+
+                <!-- Counterexample Visualization -->
+                <div class="analysis-section" id="counterexampleSection" style="display:none;">
+                    <h2>🔍 Counterexample Analysis</h2>
+                    <div id="counterexampleVisualization"></div>
+                </div>
+
+                <!-- Property Repair Suggestions -->
+                <div class="analysis-section" id="repairSection" style="display:none;">
+                    <h2>🔧 Property Repair Suggestions</h2>
+                    <div id="repairSuggestions"></div>
+                </div>
+
+                <!-- Property Results -->
+                <div class="analysis-section">
+                    <h2>✅ Property Verification Results</h2>
+                    <div id="propertyResults"></div>
+                </div>
+            </div>
+
+            <!-- Right Column: Patterns & Recommendations -->
+            <div class="col-lg-4">
+                <!-- Key Metrics -->
+                <div class="metric-card">
+                    <div class="metric-label">System Utilization</div>
+                    <div class="metric-value" id="utilizationMetric">--</div>
+                </div>
+
+                <div class="metric-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <div class="metric-label">Schedulability</div>
+                    <div class="metric-value" id="schedulabilityMetric">--</div>
+                </div>
+
+                <!-- Suggested Property Patterns -->
+                <div class="analysis-section">
+                    <h5>📚 Suggested Property Patterns</h5>
+                    <div id="suggestedPatterns"></div>
+                </div>
+
+                <!-- Schedulability Info -->
+                <div class="analysis-section">
+                    <h5>📈 Schedulability Details</h5>
+                    <div id="schedulabilityDetails"></div>
+                </div>
+
+                <!-- Priority Report -->
+                <div class="analysis-section">
+                    <h5>🔢 Priority Analysis</h5>
+                    <div id="priorityReport"></div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="analysis-section">
+                    <h5>⚡ Quick Actions</h5>
+                    <button class="btn btn-primary btn-sm w-100 mb-2" onclick="downloadXML()">
+                        Download UPPAAL XML
+                    </button>
+                    <button class="btn btn-secondary btn-sm w-100 mb-2" onclick="showPropertyLibrary()">
+                        View Pattern Library
+                    </button>
+                    <button class="btn btn-info btn-sm w-100" onclick="exportReport()">
+                        Export Full Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Property Library -->
+    <div class="modal fade" id="propertyLibraryModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">📚 Property Pattern Library</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="propertyLibraryContent">
+                    Loading...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Get verification results from server (passed via template or API)
+        let verificationData = {{ results | tojson | safe }};
+
+        function displayVerificationSummary() {
+            const summary = document.getElementById('verificationSummary');
+            const v = verificationData.verification;
+            
+            const status = v.success ? 
+                '<span class="success-badge">✅ ALL PROPERTIES PASSED</span>' :
+                '<span class="fail-badge">❌ SOME PROPERTIES FAILED</span>';
+            
+            summary.innerHTML = `
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <h4>${status}</h4>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Total Properties:</strong> ${v.total_properties || 0}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Passed:</strong> <span class="text-success">${v.properties_verified || 0}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Failed:</strong> <span class="text-danger">${(v.total_properties || 0) - (v.properties_verified || 0)}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayResponseTimeAnalysis() {
+            const rta = verificationData.response_time_analysis;
+            if (!rta) return;
+
+            const container = document.getElementById('responseTimeAnalysis');
+            const status = rta.schedulable ? 
+                '<span class="success-badge">✅ SCHEDULABLE</span>' :
+                '<span class="fail-badge">❌ NOT SCHEDULABLE</span>';
+
+            let html = `
+                <div class="mb-3">${status}</div>
+                <p><strong>Total Utilization:</strong> ${(rta.utilization * 100).toFixed(1)}%</p>
+                <p><strong>RM Bound:</strong> ${(rta.rm_bound * 100).toFixed(1)}%</p>
+                
+                <h5 class="mt-3">Task Response Times</h5>
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Task</th>
+                            <th>Response Time</th>
+                            <th>Slack</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            for (const [task, rt] of Object.entries(rta.response_times)) {
+                const slack = rta.slack_times[task];
+                const status = rt === 'UNSCHEDULABLE' ? '❌' : (slack >= 0 ? '✅' : '⚠️');
+                html += `
+                    <tr>
+                        <td>${task}</td>
+                        <td>${rt}</td>
+                        <td>${slack !== null ? slack : 'N/A'}</td>
+                        <td>${status}</td>
+                    </tr>
+                `;
+            }
+
+            html += '</tbody></table>';
+
+            if (rta.recommendations && rta.recommendations.length > 0) {
+                html += '<h5 class="mt-3">💡 Recommendations</h5><ul>';
+                rta.recommendations.forEach(rec => {
+                    html += `<li>${rec}</li>`;
+                });
+                html += '</ul>';
+            }
+
+            container.innerHTML = html;
+
+            // Draw chart
+            drawResponseTimeChart(rta);
+        }
+
+        function drawResponseTimeChart(rta) {
+            const ctx = document.getElementById('responseTimeChart').getContext('2d');
+            const tasks = Object.keys(rta.response_times);
+            const responseTimes = Object.values(rta.response_times).map(rt => 
+                rt === 'UNSCHEDULABLE' ? 0 : rt
+            );
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: tasks,
+                    datasets: [{
+                        label: 'Response Time',
+                        data: responseTimes,
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Time Units' }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Task Response Times'
+                        }
+                    }
+                }
+            });
+        }
+
+        function displayCounterexample() {
+            const ce = verificationData.counterexample_analysis;
+            if (!ce || !ce.has_counterexample) return;
+
+            document.getElementById('counterexampleSection').style.display = 'block';
+            const container = document.getElementById('counterexampleVisualization');
+
+            let html = `
+                <div class="alert alert-danger">
+                    <h5>❌ Counterexample Found</h5>
+                    <p><strong>Property Violated:</strong> ${ce.property_violated || 'Unknown'}</p>
+                    <p><strong>Trace Length:</strong> ${ce.trace_steps?.length || 0} steps</p>
+                    <p><strong>Total Time:</strong> ${ce.total_time || 0} time units</p>
+                </div>
+            `;
+
+            // Show timeline if available
+            if (ce.task_timeline) {
+                html += '<h5>Execution Timeline</h5>';
+                html += '<div id="ganttChartContainer"></div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        function displayPropertyRepairs() {
+            const repairs = verificationData.property_repairs;
+            if (!repairs || repairs.length === 0) return;
+
+            document.getElementById('repairSection').style.display = 'block';
+            const container = document.getElementById('repairSuggestions');
+
+            let html = '';
+            repairs.forEach(repair => {
+                html += `
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <strong>Failed Property:</strong> <code>${repair.property}</code>
+                        </div>
+                        <div class="card-body">
+                            <h6>🔧 Suggested Fixes:</h6>
+                            <ul>
+                `;
+                
+                repair.repair_suggestions.suggested_fixes.forEach(fix => {
+                    html += `<li>${fix}</li>`;
+                });
+
+                html += '</ul>';
+
+                if (repair.repair_suggestions.llm_explanation) {
+                    html += `
+                        <h6>🤖 LLM Analysis:</h6>
+                        <pre>${repair.repair_suggestions.llm_explanation}</pre>
+                    `;
+                }
+
+                html += '</div></div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        function displaySuggestedPatterns() {
+            const patterns = verificationData.suggested_patterns;
+            if (!patterns) return;
+
+            const container = document.getElementById('suggestedPatterns');
+            let html = '';
+
+            patterns.slice(0, 5).forEach(pattern => {
+                html += `
+                    <div class="pattern-card">
+                        <h6>${pattern.pattern_name}</h6>
+                        <code class="d-block mb-2">${pattern.formula}</code>
+                        <small class="text-muted">${pattern.reasoning}</small>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function displayPropertyResults() {
+            const v = verificationData.verification;
+            if (!v.properties) return;
+
+            const container = document.getElementById('propertyResults');
+            let html = '<ul class="property-list">';
+
+            v.properties.forEach((prop, idx) => {
+                const status = prop.satisfied ? '✅' : '❌';
+                const color = prop.satisfied ? '#28a745' : '#dc3545';
+                html += `
+                    <li style="border-left-color: ${color};">
+                        ${status} <strong>Property ${idx + 1}:</strong> <code>${prop.formula}</code>
+                        ${prop.comment ? `<br><small class="text-muted">${prop.comment}</small>` : ''}
+                    </li>
+                `;
+            });
+
+            html += '</ul>';
+            container.innerHTML = html;
+        }
+
+        function updateMetrics() {
+            const sched = verificationData.schedulability;
+            if (sched) {
+                document.getElementById('utilizationMetric').textContent = sched.total_utilization;
+                document.getElementById('schedulabilityMetric').textContent = 
+                    sched.is_schedulable ? '✅ YES' : '❌ NO';
+            }
+        }
+
+        function displaySchedulabilityDetails() {
+            const sched = verificationData.schedulability;
+            if (!sched) return;
+
+            const container = document.getElementById('schedulabilityDetails');
+            container.innerHTML = `
+                <p><strong>Utilization:</strong> ${sched.total_utilization}</p>
+                <p><strong>LL Bound:</strong> ${sched.ll_bound}</p>
+                <p><strong>Status:</strong> ${sched.is_schedulable ? '✅ Schedulable' : '❌ Not Schedulable'}</p>
+            `;
+        }
+
+        function displayPriorityReport() {
+            const priority = verificationData.priority_report;
+            if (!priority) return;
+
+            const container = document.getElementById('priorityReport');
+            let html = `<p><strong>Status:</strong> ${priority.has_errors ? '❌ Errors' : '✅ OK'}</p>`;
+
+            if (priority.warnings && priority.warnings.length > 0) {
+                html += '<small>';
+                priority.warnings.slice(0, 3).forEach(w => {
+                    html += `<div>${w.message}</div>`;
+                });
+                html += '</small>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        async function showPropertyLibrary() {
+            const modal = new bootstrap.Modal(document.getElementById('propertyLibraryModal'));
+            const content = document.getElementById('propertyLibraryContent');
+            
+            content.innerHTML = 'Loading patterns...';
+            
+            try {
+                const response = await fetch('/property-patterns');
+                const data = await response.json();
+                
+                if (data.success) {
+                    let html = '';
+                    for (const [category, patterns] of Object.entries(data.patterns)) {
+                        html += `<h4>${category.replace('_', ' ').toUpperCase()}</h4>`;
+                        html += '<div class="row">';
+                        patterns.forEach(pattern => {
+                            html += `
+                                <div class="col-md-6 mb-3">
+                                    <div class="pattern-card">
+                                        <h6>${pattern.name}</h6>
+                                        <code>${pattern.pattern}</code>
+                                        <p class="mt-2 mb-1"><small>${pattern.description}</small></p>
+                                        <strong>Example:</strong>
+                                        <div class="code-snippet"><small>${pattern.example}</small></div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                    }
+                    content.innerHTML = html;
+                }
+            } catch (error) {
+                content.innerHTML = `<div class="alert alert-danger">Error loading patterns: ${error.message}</div>`;
+            }
+            
+            modal.show();
+        }
+
+        function downloadXML() {
+            const xml = verificationData.xml_content;
+            const blob = new Blob([xml], { type: 'text/xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'uppaal_model.xml';
+            a.click();
+        }
+
+        function exportReport() {
+            alert('Full report export feature coming soon!');
+        }
+
+        // Initialize all displays
+        window.onload = function() {
+            displayVerificationSummary();
+            displayResponseTimeAnalysis();
+            displayCounterexample();
+            displayPropertyRepairs();
+            displaySuggestedPatterns();
+            displayPropertyResults();
+            updateMetrics();
+            displaySchedulabilityDetails();
+            displayPriorityReport();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+  <declaration>
+// NavigationTask — generated 2025-11-18
+int cpu_owner = -1; // -1 means CPU free
+  </declaration>
+  <template>
+    <name>T_High</name>
+    <declaration>
+clock x;
+const int PERIOD = 30;
+const int DEADLINE = 30;
+const int EXEC_TIME = 8;
+const int TASK_ID = 1;
+    </declaration>
+    <location id="th_idle" x="-200" y="0">
+      <name>Idle</name>
+    </location>
+    <location id="th_ready" x="0" y="0">
+      <name>Ready</name>
+      <label kind="invariant">x &lt;= PERIOD</label>
+    </location>
+    <location id="th_exec" x="200" y="0">
+      <name>Executing</name>
+      <label kind="invariant">x &lt;= EXEC_TIME</label>
+    </location>
+    <location id="th_done" x="400" y="0">
+      <name>Done</name>
+    </location>
+    <init ref="th_idle"/>
+    <transition>
+      <source ref="th_idle"/>
+      <target ref="th_ready"/>
+      <label kind="assignment">x := 0</label>
+    </transition>
+    <transition>
+      <source ref="th_ready"/>
+      <target ref="th_exec"/>
+  <label kind="guard">x &gt;= 0 &amp;&amp; cpu_owner == -1</label>
+      <label kind="assignment">cpu_owner := TASK_ID, x := 0</label>
+    </transition>
+    <transition>
+      <source ref="th_exec"/>
+      <target ref="th_done"/>
+      <label kind="guard">x &lt;= DEADLINE</label>
+      <label kind="assignment">cpu_owner := -1</label>
+    </transition>
+    <transition>
+      <source ref="th_done"/>
+      <target ref="th_idle"/>
+      <label kind="assignment">x := 0</label>
+    </transition>
+  </template>
+  <template>
+    <name>T_Medium</name>
+    <declaration>
+clock x;
+const int PERIOD = 100;
+const int DEADLINE = 100;
+const int EXEC_TIME = 30;
+const int TASK_ID = 2;
+    </declaration>
+    <location id="tm_idle" x="-200" y="150">
+      <name>Idle</name>
+    </location>
+    <location id="tm_ready" x="0" y="150">
+      <name>Ready</name>
+      <label kind="invariant">x &lt;= PERIOD</label>
+    </location>
+    <location id="tm_exec" x="200" y="150">
+      <name>Executing</name>
+      <label kind="invariant">x &lt;= EXEC_TIME</label>
+    </location>
+    <location id="tm_done" x="400" y="150">
+      <name>Done</name>
+    </location>
+    <init ref="tm_idle"/>
+    <transition>
+      <source ref="tm_idle"/>
+      <target ref="tm_ready"/>
+      <label kind="assignment">x := 0</label>
+    </transition>
+    <transition>
+      <source ref="tm_ready"/>
+      <target ref="tm_exec"/>
+  <label kind="guard">x &gt;= 0 &amp;&amp; cpu_owner == -1</label>
+      <label kind="assignment">cpu_owner := TASK_ID, x := 0</label>
+    </transition>
+    <transition>
+      <source ref="tm_exec"/>
+      <target ref="tm_done"/>
+      <label kind="guard">x &lt;= DEADLINE</label>
+      <label kind="assignment">cpu_owner := -1</label>
+    </transition>
+    <transition>
+      <source ref="tm_done"/>
+      <target ref="tm_idle"/>
+      <label kind="assignment">x := 0</label>
+    </transition>
+  </template>
+  <template>
+    <name>T_Low</name>
+    <declaration>
+clock x;
+const int PERIOD = 150;
+const int DEADLINE = 150;
+const int EXEC_TIME = 20;
+const int TASK_ID = 3;
+    </declaration>
+    <location id="tl_idle" x="-200" y="300">
+      <name>Idle</name>
+    </location>
+    <location id="tl_ready" x="0" y="300">
+      <name>Ready</name>
+      <label kind="invariant">x &lt;= PERIOD</label>
+    </location>
+    <location id="tl_exec" x="200" y="300">
+      <name>Executing</name>
+      <label kind="invariant">x &lt;= EXEC_TIME</label>
+    </location>
+    <location id="tl_done" x="400" y="300">
+      <name>Done</name>
+    </location>
+    <init ref="tl_idle"/>
+    <transition>
+      <source ref="tl_idle"/>
+      <target ref="tl_ready"/>
+      <label kind="assignment">x := 0</label>
+    </transition>
+    <transition>
+      <source ref="tl_ready"/>
+      <target ref="tl_exec"/>
+  <label kind="guard">x &gt;= 0 &amp;&amp; cpu_owner == -1</label>
+      <label kind="assignment">cpu_owner := TASK_ID, x := 0</label>
+    </transition>
+    <transition>
+      <source ref="tl_exec"/>
+      <target ref="tl_done"/>
+      <label kind="guard">x &lt;= DEADLINE</label>
+      <label kind="assignment">cpu_owner := -1</label>
+    </transition>
+    <transition>
+      <source ref="tl_done"/>
+      <target ref="tl_idle"/>
+      <label kind="assignment">x := 0</label>
+    </transition>
+  </template>
+  <system>
+T_High_inst = T_High();
+T_Medium_inst = T_Medium();
+T_Low_inst = T_Low();
+system T_High_inst, T_Medium_inst, T_Low_inst;
+  </system>
+  <queries>
+    <query>
+      <formula>A[] not deadlock</formula>
+      <comment>[SAFETY]</comment>
+    </query>
+    <query>
+      <formula>A[] (T_High_inst.Executing imply T_High_inst.x &lt;= 30)</formula>
+      <comment>[TIMING]</comment>
+    </query>
+    <query>
+      <formula>E&lt;&gt; T_High_inst.Done</formula>
+      <comment>[LIVENESS]</comment>
+    </query>
+    <query>
+      <formula>A[] (T_Medium_inst.Executing imply T_Medium_inst.x &lt;= 100)</formula>
+      <comment>[TIMING]</comment>
+    </query>
+    <query>
+      <formula>E&lt;&gt; T_Medium_inst.Done</formula>
+      <comment>[LIVENESS]</comment>
+    </query>
+    <query>
+      <formula>A[] (T_Low_inst.Executing imply T_Low_inst.x &lt;= 150)</formula>
+      <comment>[TIMING]</comment>
+    </query>
+    <query>
+      <formula>E&lt;&gt; T_Low_inst.Done</formula>
+      <comment>[LIVENESS]</comment>
+    </query>
+    <query>
+      <formula>A[] not (T_High_inst.Executing and T_Medium_inst.Executing)</formula>
+      <comment>[PREEMPTION]</comment>
+    </query>
+    <query>
+      <formula>A[] not (T_Medium_inst.Executing and T_Low_inst.Executing)</formula>
+      <comment>[MUTEX]</comment>
+    </query>
+  </queries>
+</nta>

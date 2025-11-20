@@ -1,0 +1,21 @@
+{
+  "mode": "verifyta 5.0.0 (Windows)",
+  "status": "PASS",
+  "properties": {
+    "P1": "satisfied",
+    "P2": "satisfied",
+    "P3": "satisfied",
+    "P4": "satisfied",
+    "P5": "satisfied",
+    "P6": "satisfied",
+    "P7": "satisfied",
+    "P8": "satisfied",
+    "P9": "satisfied",
+    "P10": "satisfied",
+    "P11": "satisfied",
+    "P12": "satisfied",
+    "P13": "satisfied",
+    "P14": "satisfied"
+  },
+  "log_file": "verifyta_stdout.txt"
+}

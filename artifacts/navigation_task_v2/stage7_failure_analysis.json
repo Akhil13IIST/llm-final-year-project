@@ -1,0 +1,5 @@
+{
+  "status": "NOT_TRIGGERED",
+  "reason": "All verifyta queries satisfied on first pass; no counterexamples produced.",
+  "repairs_performed": []
+}

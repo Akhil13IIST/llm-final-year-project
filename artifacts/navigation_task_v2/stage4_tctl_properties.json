@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "properties": [
+    {"id": "P1", "formula": "A[] not deadlock", "comment": "Global safety"},
+    {"id": "P2", "formula": "A[] (T_High_inst.Executing imply T_High_inst.x <= 30)", "comment": "T_High deadline"},
+    {"id": "P3", "formula": "E<> T_High_inst.Done", "comment": "T_High completes"},
+    {"id": "P4", "formula": "A[] (T_Medium_inst.Executing imply T_Medium_inst.x <= 100)", "comment": "T_Medium deadline"},
+    {"id": "P5", "formula": "E<> T_Medium_inst.Done", "comment": "T_Medium completes"},
+    {"id": "P6", "formula": "A[] (T_Low_inst.Executing imply T_Low_inst.x <= 150)", "comment": "T_Low deadline"},
+    {"id": "P7", "formula": "E<> T_Low_inst.Done", "comment": "T_Low completes"},
+    {"id": "P8", "formula": "A[] (T_Backup_inst.Executing imply T_Backup_inst.x <= 400)", "comment": "T_Backup deadline"},
+    {"id": "P9", "formula": "E<> T_Backup_inst.Done", "comment": "T_Backup completes"},
+    {"id": "P10", "formula": "A[] (T_Diagnostic_inst.Executing imply T_Diagnostic_inst.x <= 800)", "comment": "T_Diagnostic deadline"},
+    {"id": "P11", "formula": "E<> T_Diagnostic_inst.Done", "comment": "T_Diagnostic completes"},
+    {"id": "P12", "formula": "A[] not (T_High_inst.Executing and T_Medium_inst.Executing)", "comment": "CPU mutual exclusion high/medium"},
+    {"id": "P13", "formula": "A[] not (T_Medium_inst.Executing and T_Low_inst.Executing)", "comment": "CPU mutual exclusion medium/low"},
+    {"id": "P14", "formula": "A[] not (T_Backup_inst.Executing and T_Diagnostic_inst.Executing)", "comment": "CPU mutual exclusion backup/diagnostic"}
+  ]
+}

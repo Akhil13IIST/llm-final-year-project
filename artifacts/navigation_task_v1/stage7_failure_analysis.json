@@ -1,0 +1,20 @@
+{
+  "status": "RESOLVED",
+  "counterexamples": [
+    {
+      "property": "P8",
+      "issue": "CPU abstraction absent so high and medium tasks could overlap, violating mutual exclusion."
+    },
+    {
+      "property": "P9",
+      "issue": "Same root cause allowed medium and low tasks to execute simultaneously."
+    }
+  ],
+  "repair_plan": "Introduce a global cpu_owner variable and guards that ensure only one task can be in Executing at any time; release CPU on completion.",
+  "model_changes": [
+    "Added int cpu_owner global state",
+    "Extended Ready->Executing transitions to require cpu_owner == -1 and claim CPU",
+    "Ensured Executing->Done releases CPU"
+  ],
+  "result": "Re-run verifyta: all properties satisfied"
+}

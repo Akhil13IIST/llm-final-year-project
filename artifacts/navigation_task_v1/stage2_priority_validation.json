@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "rule": "Rate Monotonic Scheduling (shorter period => higher priority)",
+  "analysis": [
+    {"name": "T_High", "period_ms": 30, "input_priority": 1, "expected_priority": 1},
+    {"name": "T_Medium", "period_ms": 100, "input_priority": 2, "expected_priority": 2},
+    {"name": "T_Low", "period_ms": 150, "input_priority": 3, "expected_priority": 3}
+  ],
+  "corrections": []
+}

@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "notes": "Input parsed from spec.json and all mandatory fields present.",
+  "normalized_spec": {
+    "system": "NavigationTask",
+    "scheduler": "RMS",
+    "mutexes": 1,
+    "tasks": [
+      {"id": 1, "name": "T_High", "period_ms": 30, "execution_ms": 8, "deadline_ms": 30, "priority": 1, "uses_mutex": false},
+      {"id": 2, "name": "T_Medium", "period_ms": 100, "execution_ms": 30, "deadline_ms": 100, "priority": 2, "uses_mutex": true},
+      {"id": 3, "name": "T_Low", "period_ms": 150, "execution_ms": 20, "deadline_ms": 150, "priority": 3, "uses_mutex": true}
+    ]
+  },
+  "fixes_applied": []
+}

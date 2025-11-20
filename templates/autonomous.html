@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autonomous Formal Verification Pipeline</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 1.8em;
+            font-weight: 600;
+        }
+        
+        .header .subtitle {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.2);
+            transition: all 0.3s;
+        }
+        
+        .nav-links a:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .pipeline-info {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .pipeline-stages {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .stage {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            font-size: 0.85em;
+            flex: 1;
+            min-width: 150px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .stage-number {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px 40px;
+        }
+        
+        .section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .format-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .tab {
+            padding: 8px 20px;
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 400px;
+            padding: 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+            resize: vertical;
+        }
+        
+        .example-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .btn-secondary:hover {
+            background: #f8f9fa;
+        }
+        
+        .verify-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            margin-top: 15px;
+        }
+        
+        .results-section {
+            grid-column: 1 / -1;
+            display: none;
+        }
+        
+        .results-section.show {
+            display: block;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-running {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .iteration-info {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .code-output {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85em;
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .properties-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .property-item {
+            background: white;
+            padding: 10px 15px;
+            margin: 8px 0;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .property-item.passed {
+            border-left: 4px solid #28a745;
+        }
+        
+        .property-item.failed {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .download-btn {
+            margin-top: 10px;
+        }
+        
+        .tabs-container {
+            margin-top: 20px;
+        }
+        
+        .result-tab {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #e9ecef;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        
+        .result-tab.active {
+            background: white;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 0 8px 8px 8px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>🤖 Autonomous Formal Verification Pipeline</h1>
+                <div class="subtitle">Spec → Verified Code with Zero Human Intervention</div>
+            </div>
+            <div class="nav-links">
+                <a href="/">Main System</a>
+                <a href="/dashboard">Dashboard</a>
+                <a href="/task_editor">Task Editor</a>
+            </div>
+        </div>
+        
+        <div class="pipeline-info">
+            <h3>9-Stage Deterministic Pipeline</h3>
+            <div class="pipeline-stages">
+                <div class="stage"><span class="stage-number">1.</span> Input Validation</div>
+                <div class="stage"><span class="stage-number">2.</span> Priority Validation</div>
+                <div class="stage"><span class="stage-number">3.</span> Schedulability</div>
+                <div class="stage"><span class="stage-number">4.</span> Property Gen</div>
+                <div class="stage"><span class="stage-number">5.</span> UPPAAL Model</div>
+                <div class="stage"><span class="stage-number">6.</span> Verifyta Check</div>
+                <div class="stage"><span class="stage-number">7.</span> Auto-Repair</div>
+                <div class="stage"><span class="stage-number">8.</span> Haskell Code</div>
+                <div class="stage"><span class="stage-number">9.</span> SDD Document</div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="section">
+                <h2>📝 Input Specification</h2>
+                
+                <div class="format-tabs">
+                    <div class="tab active" onclick="switchFormat('json')">JSON Format</div>
+                    <div class="tab" onclick="switchFormat('ini')">INI Format</div>
+                </div>
+                
+                <textarea id="specInput" placeholder='Enter your specification...
+Example JSON:
+{
+  "system_name": "MySystem",
+  "tasks": [
+    {
+      "name": "TaskA",
+      "period_ms": 10,
+      "deadline_ms": 10,
+      "execution_time_ms": 3,
+      "priority": 1
+    }
+  ]
+}'></textarea>
+                
+                <div class="example-buttons">
+                    <button class="btn btn-secondary" onclick="loadExample('simple')">Simple Example</button>
+                    <button class="btn btn-secondary" onclick="loadExample('complex')">Complex Example</button>
+                    <button class="btn btn-secondary" onclick="loadExample('unschedulable')">Unschedulable (Test Repair)</button>
+                </div>
+                
+                <div style="margin-top: 15px; padding: 12px; background: white; border-radius: 8px; border: 2px solid #dee2e6;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="useLlmCheckbox" checked style="width: 18px; height: 18px; cursor: pointer;">
+                        <span style="font-weight: 500;">🤖 Use LLM for Dynamic Property Generation</span>
+                    </label>
+                    <p style="font-size: 0.85em; color: #666; margin-top: 8px; margin-left: 28px;">
+                        When enabled, uses Ollama LLM to generate context-aware properties. Falls back to deterministic templates if unavailable.
+                    </p>
+                </div>
+                
+                <button class="btn btn-primary verify-btn" onclick="runVerification()">
+                    🚀 Run Autonomous Verification
+                </button>
+            </div>
+            
+            <div class="section">
+                <h2>ℹ️ How It Works</h2>
+                <p style="margin-bottom: 15px;">This autonomous pipeline converts your real-time system specification into formally verified code without any human intervention.</p>
+                
+                <h3 style="margin-top: 20px; margin-bottom: 10px;">Features:</h3>
+                <ul style="line-height: 1.8; margin-left: 20px;">
+                    <li>🤖 <strong>LLM-powered property generation</strong> (context-aware)</li>
+                    <li>✅ Automatic RMS priority assignment</li>
+                    <li>✅ Liu-Layland schedulability bounds</li>
+                    <li>✅ Response Time Analysis (RTA)</li>
+                    <li>✅ TCTL property generation (dynamic or template-based)</li>
+                    <li>✅ Real UPPAAL formal verification</li>
+                    <li>✅ Automatic repair of unschedulable systems</li>
+                    <li>✅ Type-safe Haskell code generation</li>
+                    <li>✅ Comprehensive SDD documentation</li>
+                    <li>✅ Converges in max 10 iterations</li>
+                </ul>
+                
+                <h3 style="margin-top: 20px; margin-bottom: 10px;">Input Formats:</h3>
+                <div style="background: white; padding: 15px; border-radius: 8px; margin-top: 10px;">
+                    <p style="margin-bottom: 10px;"><strong>JSON:</strong> Structured format with full control</p>
+                    <p><strong>INI:</strong> Simple task definitions with auto-conversion</p>
+                </div>
+            </div>
+            
+            <div class="section results-section" id="resultsSection">
+                <h2>📊 Verification Results</h2>
+                
+                <div id="loadingIndicator" class="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Running autonomous pipeline...</p>
+                    <p style="font-size: 0.9em; color: #666; margin-top: 10px;">This may take a few moments depending on system complexity</p>
+                </div>
+                
+                <div id="resultsContent" style="display: none;">
+                    <div class="iteration-info">
+                        <h3>Pipeline Status</h3>
+                        <p><strong>Success:</strong> <span id="statusBadge"></span></p>
+                        <p><strong>Converged:</strong> <span id="convergedStatus"></span></p>
+                        <p><strong>Iterations:</strong> <span id="iterationCount"></span></p>
+                        <p><strong>Final Utilization:</strong> <span id="finalUtil"></span></p>
+                    </div>
+                    
+                    <div class="tabs-container">
+                        <div class="result-tab active" onclick="switchResultTab('properties')">Properties</div>
+                        <div class="result-tab" onclick="switchResultTab('haskell')">Haskell Code</div>
+                        <div class="result-tab" onclick="switchResultTab('sdd')">SDD Document</div>
+                        <div class="result-tab" onclick="switchResultTab('uppaal')">UPPAAL XML</div>
+                    </div>
+                    
+                    <div class="tab-content active" id="propertiesTab">
+                        <h3>Verified Properties</h3>
+                        <ul class="properties-list" id="propertiesList"></ul>
+                    </div>
+                    
+                    <div class="tab-content" id="haskellTab">
+                        <h3>Generated Haskell Code</h3>
+                        <button class="btn btn-secondary download-btn" onclick="downloadCode('haskell')">📥 Download Haskell</button>
+                        <pre class="code-output" id="haskellCode"></pre>
+                    </div>
+                    
+                    <div class="tab-content" id="sddTab">
+                        <h3>System Design Document</h3>
+                        <button class="btn btn-secondary download-btn" onclick="downloadCode('sdd')">📥 Download SDD</button>
+                        <pre class="code-output" id="sddDoc"></pre>
+                    </div>
+                    
+                    <div class="tab-content" id="uppaalTab">
+                        <h3>UPPAAL Model XML</h3>
+                        <button class="btn btn-secondary download-btn" onclick="downloadCode('uppaal')">📥 Download XML</button>
+                        <pre class="code-output" id="uppaalXml"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentFormat = 'json';
+        let currentResults = null;
+        
+        function switchFormat(format) {
+            currentFormat = format;
+            document.querySelectorAll('.format-tabs .tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            document.getElementById('specInput').value = '';
+        }
+        
+        function loadExample(type) {
+            fetch('/autonomous_verify/example')
+                .then(res => res.json())
+                .then(data => {
+                    if (type === 'simple') {
+                        document.getElementById('specInput').value = currentFormat === 'json' 
+                            ? JSON.stringify(data.examples.json, null, 2)
+                            : data.examples.ini;
+                    } else if (type === 'complex') {
+                        const complex = {
+                            "system_name": "ComplexNavigation",
+                            "tasks": [
+                                {"name": "HighPriority", "period_ms": 5, "deadline_ms": 5, "execution_time_ms": 2, "priority": 1},
+                                {"name": "MediumPriority", "period_ms": 10, "deadline_ms": 10, "execution_time_ms": 3, "priority": 2},
+                                {"name": "LowPriority", "period_ms": 20, "deadline_ms": 20, "execution_time_ms": 5, "priority": 3},
+                                {"name": "Logger", "period_ms": 50, "deadline_ms": 50, "execution_time_ms": 8, "priority": 4}
+                            ]
+                        };
+                        document.getElementById('specInput').value = JSON.stringify(complex, null, 2);
+                    } else if (type === 'unschedulable') {
+                        const unschedulable = {
+                            "system_name": "UnschedulableTest",
+                            "tasks": [
+                                {"name": "Heavy1", "period_ms": 10, "deadline_ms": 10, "execution_time_ms": 8, "priority": 1},
+                                {"name": "Heavy2", "period_ms": 15, "deadline_ms": 15, "execution_time_ms": 10, "priority": 2}
+                            ]
+                        };
+                        document.getElementById('specInput').value = JSON.stringify(unschedulable, null, 2);
+                    }
+                });
+        }
+        
+        function runVerification() {
+            const spec = document.getElementById('specInput').value.trim();
+            if (!spec) {
+                alert('Please enter a specification!');
+                return;
+            }
+            
+            const useLlm = document.getElementById('useLlmCheckbox').checked;
+            
+            document.getElementById('resultsSection').classList.add('show');
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('resultsContent').style.display = 'none';
+            
+            fetch('/autonomous_verify', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    specification: spec,
+                    format: currentFormat,
+                    use_llm: useLlm
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                currentResults = data;
+                displayResults(data);
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('resultsContent').style.display = 'block';
+            })
+            .catch(err => {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                alert('Error: ' + err.message);
+            });
+        }
+        
+        function displayResults(data) {
+            // Status
+            const statusBadge = document.getElementById('statusBadge');
+            statusBadge.className = 'status-badge ' + (data.success ? 'status-success' : 'status-error');
+            statusBadge.textContent = data.success ? '✅ SUCCESS' : '❌ FAILED';
+            
+            document.getElementById('convergedStatus').textContent = data.converged ? 'Yes' : 'No';
+            document.getElementById('iterationCount').textContent = data.iterations;
+            
+            // Calculate utilization - handle both API formats
+            const finalSpec = data.final_specification || data.final_spec;
+            if (finalSpec && finalSpec.tasks) {
+                const util = finalSpec.tasks.reduce((sum, t) => 
+                    sum + (t.execution_time_ms / t.period_ms), 0) * 100;
+                document.getElementById('finalUtil').textContent = util.toFixed(1) + '%';
+            }
+            
+            // Properties
+            const propList = document.getElementById('propertiesList');
+            propList.innerHTML = '';
+            if (data.verification_results && data.verification_results.property_results) {
+                data.verification_results.property_results.forEach(prop => {
+                    const li = document.createElement('li');
+                    li.className = 'property-item ' + (prop.satisfied ? 'passed' : 'failed');
+                    li.innerHTML = `<span>${prop.satisfied ? '✅' : '❌'}</span><code>${prop.formula}</code>`;
+                    propList.appendChild(li);
+                });
+            } else if (data.properties) {
+                // Fallback: show properties without verification results
+                data.properties.forEach(prop => {
+                    const li = document.createElement('li');
+                    li.className = 'property-item passed';
+                    li.innerHTML = `<span>📋</span><code>${prop.formula}</code>`;
+                    propList.appendChild(li);
+                });
+            }
+            
+            // Code outputs - handle both old and new API format
+            const haskellCode = data.verified_code?.haskell || data.verified_haskell_code || 'No code generated';
+            const sddDoc = data.sdd || data.sdd_document || 'No SDD generated';
+            const uppaalXml = data.verified_code?.uppaal_xml || data.uppaal_xml || 'No XML generated';
+            
+            document.getElementById('haskellCode').textContent = haskellCode;
+            document.getElementById('sddDoc').textContent = sddDoc;
+            document.getElementById('uppaalXml').textContent = uppaalXml;
+        }
+        
+        function switchResultTab(tab) {
+            document.querySelectorAll('.result-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tab + 'Tab').classList.add('active');
+        }
+        
+        function downloadCode(type) {
+            if (!currentResults) return;
+            
+            let content, filename;
+            if (type === 'haskell') {
+                content = currentResults.verified_code?.haskell || currentResults.verified_haskell_code;
+                filename = 'VerifiedScheduler.hs';
+            } else if (type === 'sdd') {
+                content = currentResults.sdd || currentResults.sdd_document;
+                filename = 'SystemDesign.md';
+            } else if (type === 'uppaal') {
+                content = currentResults.verified_code?.uppaal_xml || currentResults.uppaal_xml;
+                filename = 'model.xml';
+            }
+            
+            if (!content) {
+                alert('No content available to download');
+                return;
+            }
+            
+            const blob = new Blob([content], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // Load simple example on page load
+        window.addEventListener('load', () => {
+            loadExample('simple');
+        });
+    </script>
+</body>
+</html>

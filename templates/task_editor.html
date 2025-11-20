@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Task Editor - Real-Time Verification</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .editor-grid {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 20px;
+            padding: 30px;
+            min-height: 600px;
+        }
+        
+        .task-panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+        
+        .task-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 2px solid #e9ecef;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .task-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+        
+        .task-item.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea10, #764ba210);
+        }
+        
+        .add-task-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        
+        .add-task-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .editor-area {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .slider-group {
+            margin: 10px 0;
+        }
+        
+        .slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .slider-value {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .parameter-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .live-preview {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .schedulability-indicator {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        
+        .schedulability-indicator.schedulable {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        
+        .schedulability-indicator.unschedulable {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        
+        .what-if-panel {
+            background: linear-gradient(135deg, #ffecd2, #fcb69f);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .utilization-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎛️ Interactive Task Editor</h1>
+            <p>Real-Time Task Designer with Live Schedulability Analysis</p>
+        </div>
+        
+        <div class="editor-grid">
+            <!-- Task List Panel -->
+            <div class="task-panel">
+                <button class="add-task-btn" onclick="addNewTask()">➕ Add New Task</button>
+                
+                <div id="taskList">
+                    <!-- Tasks will be listed here -->
+                </div>
+                
+                <div class="quick-actions" style="margin-top: 20px;">
+                    <button class="btn btn-success" onclick="verifyAllTasks()">
+                        🚀 Verify All Tasks
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Editor Area -->
+            <div class="editor-area">
+                <h2>Task Editor</h2>
+                <p id="editorHint" style="color: #6c757d;">Select a task from the left panel or add a new one to start editing.</p>
+                
+                <div id="editorForm" style="display: none;">
+                    <div class="form-group">
+                        <label for="taskName">Task Name</label>
+                        <input type="text" id="taskName" placeholder="e.g., Navigation_Task" onchange="updateTask()">
+                    </div>
+                    
+                    <div class="parameter-grid">
+                        <div class="slider-group">
+                            <label>Period (ms)</label>
+                            <input type="range" id="periodSlider" class="slider" min="10" max="1000" value="100" 
+                                   oninput="updateSliderValue('period', this.value); updateTask()">
+                            <span class="slider-value" id="periodValue">100 ms</span>
+                        </div>
+                        
+                        <div class="slider-group">
+                            <label>Deadline (ms)</label>
+                            <input type="range" id="deadlineSlider" class="slider" min="5" max="1000" value="80" 
+                                   oninput="updateSliderValue('deadline', this.value); updateTask()">
+                            <span class="slider-value" id="deadlineValue">80 ms</span>
+                        </div>
+                    </div>
+                    
+                    <div class="parameter-grid">
+                        <div class="slider-group">
+                            <label>Min Execution (ms)</label>
+                            <input type="range" id="minExecSlider" class="slider" min="1" max="100" value="10" 
+                                   oninput="updateSliderValue('minExec', this.value); updateTask()">
+                            <span class="slider-value" id="minExecValue">10 ms</span>
+                        </div>
+                        
+                        <div class="slider-group">
+                            <label>Max Execution (ms)</label>
+                            <input type="range" id="maxExecSlider" class="slider" min="1" max="100" value="50" 
+                                   oninput="updateSliderValue('maxExec', this.value); updateTask()">
+                            <span class="slider-value" id="maxExecValue">50 ms</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="priority">Priority (lower = higher priority)</label>
+                        <input type="number" id="priority" min="1" max="99" value="5" onchange="updateTask()">
+                    </div>
+                    
+                    <!-- What-If Analysis -->
+                    <div class="what-if-panel">
+                        <h3>⚡ What-If Analysis</h3>
+                        <div class="utilization-display" id="utilizationDisplay">
+                            Utilization: 0%
+                        </div>
+                        <div id="schedulabilityStatus" class="schedulability-indicator"></div>
+                    </div>
+                    
+                    <!-- Live Code Preview -->
+                    <div class="live-preview" id="livePreview">
+                        <!-- Generated Ada code will appear here -->
+                    </div>
+                    
+                    <div class="quick-actions">
+                        <button class="btn btn-primary" onclick="applyChanges()">💾 Apply Changes</button>
+                        <button class="btn btn-danger" onclick="deleteTask()">🗑️ Delete Task</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let tasks = [];
+        let currentTaskId = null;
+        let taskIdCounter = 1;
+        
+        function addNewTask() {
+            const newTask = {
+                id: taskIdCounter++,
+                name: `Task_${tasks.length + 1}`,
+                period: 100,
+                deadline: 80,
+                minExec: 10,
+                maxExec: 50,
+                priority: tasks.length + 1
+            };
+            
+            tasks.push(newTask);
+            renderTaskList();
+            selectTask(newTask.id);
+        }
+        
+        function renderTaskList() {
+            const listDiv = document.getElementById('taskList');
+            listDiv.innerHTML = tasks.map(task => `
+                <div class="task-item ${currentTaskId === task.id ? 'selected' : ''}" 
+                     onclick="selectTask(${task.id})">
+                    <strong>${task.name}</strong>
+                    <div style="font-size: 12px; color: #6c757d; margin-top: 5px;">
+                        Period: ${task.period}ms | Priority: ${task.priority}
+                    </div>
+                    <div style="font-size: 11px; color: #667eea; margin-top: 3px;">
+                        U = ${(task.maxExec / task.period * 100).toFixed(1)}%
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function selectTask(taskId) {
+            currentTaskId = taskId;
+            const task = tasks.find(t => t.id === taskId);
+            
+            if (!task) return;
+            
+            // Show editor
+            document.getElementById('editorHint').style.display = 'none';
+            document.getElementById('editorForm').style.display = 'block';
+            
+            // Populate form
+            document.getElementById('taskName').value = task.name;
+            document.getElementById('periodSlider').value = task.period;
+            document.getElementById('deadlineSlider').value = task.deadline;
+            document.getElementById('minExecSlider').value = task.minExec;
+            document.getElementById('maxExecSlider').value = task.maxExec;
+            document.getElementById('priority').value = task.priority;
+            
+            updateSliderValue('period', task.period);
+            updateSliderValue('deadline', task.deadline);
+            updateSliderValue('minExec', task.minExec);
+            updateSliderValue('maxExec', task.maxExec);
+            
+            updateLivePreview();
+            updateSchedulability();
+            renderTaskList();
+        }
+        
+        function updateSliderValue(type, value) {
+            document.getElementById(type + 'Value').textContent = value + ' ms';
+        }
+        
+        function updateTask() {
+            if (!currentTaskId) return;
+            
+            const task = tasks.find(t => t.id === currentTaskId);
+            if (!task) return;
+            
+            task.name = document.getElementById('taskName').value;
+            task.period = parseInt(document.getElementById('periodSlider').value);
+            task.deadline = parseInt(document.getElementById('deadlineSlider').value);
+            task.minExec = parseInt(document.getElementById('minExecSlider').value);
+            task.maxExec = parseInt(document.getElementById('maxExecSlider').value);
+            task.priority = parseInt(document.getElementById('priority').value);
+            
+            updateLivePreview();
+            updateSchedulability();
+            renderTaskList();
+        }
+        
+        function updateLivePreview() {
+            if (!currentTaskId) return;
+            
+            const task = tasks.find(t => t.id === currentTaskId);
+            if (!task) return;
+            
+            const adaCode = `task ${task.name} is
+   pragma Priority(${task.priority});
+end ${task.name};
+
+task body ${task.name} is
+   Period : constant Time_Span := Milliseconds(${task.period});
+   Deadline : constant Time_Span := Milliseconds(${task.deadline});
+   Next_Release : Time := Clock;
+begin
+   loop
+      delay until Next_Release;
+      -- Task processing (${task.minExec}-${task.maxExec}ms)
+      Next_Release := Next_Release + Period;
+   end loop;
+end ${task.name};`;
+            
+            document.getElementById('livePreview').textContent = adaCode;
+        }
+        
+        function updateSchedulability() {
+            // Calculate total utilization
+            const totalUtil = tasks.reduce((sum, t) => sum + (t.maxExec / t.period), 0);
+            const llBound = tasks.length * (Math.pow(2, 1/tasks.length) - 1);
+            
+            document.getElementById('utilizationDisplay').textContent = 
+                `Total Utilization: ${(totalUtil * 100).toFixed(1)}%`;
+            
+            const statusDiv = document.getElementById('schedulabilityStatus');
+            if (totalUtil <= llBound) {
+                statusDiv.className = 'schedulability-indicator schedulable';
+                statusDiv.textContent = `✅ Schedulable (U = ${(totalUtil * 100).toFixed(1)}% ≤ LL Bound = ${(llBound * 100).toFixed(1)}%)`;
+            } else {
+                statusDiv.className = 'schedulability-indicator unschedulable';
+                statusDiv.textContent = `⚠️ May not be schedulable (U = ${(totalUtil * 100).toFixed(1)}% > LL Bound = ${(llBound * 100).toFixed(1)}%)`;
+            }
+        }
+        
+        function applyChanges() {
+            alert('✅ Changes saved! Task updated successfully.');
+            renderTaskList();
+        }
+        
+        function deleteTask() {
+            if (!currentTaskId) return;
+            
+            if (confirm('Are you sure you want to delete this task?')) {
+                tasks = tasks.filter(t => t.id !== currentTaskId);
+                currentTaskId = null;
+                document.getElementById('editorForm').style.display = 'none';
+                document.getElementById('editorHint').style.display = 'block';
+                renderTaskList();
+            }
+        }
+        
+        async function verifyAllTasks() {
+            if (tasks.length === 0) {
+                alert('Add some tasks first!');
+                return;
+            }
+            
+            // Generate combined Ada code
+            const combinedCode = tasks.map(task => {
+                return `task ${task.name} is
+   pragma Priority(${task.priority});
+end ${task.name};
+
+task body ${task.name} is
+   Period : constant Time_Span := Milliseconds(${task.period});
+   Deadline : constant Time_Span := Milliseconds(${task.deadline});
+   Next_Release : Time := Clock;
+begin
+   loop
+      delay until Next_Release;
+      -- Processing
+      Next_Release := Next_Release + Period;
+   end loop;
+end ${task.name};`;
+            }).join('\n\n');
+            
+            // Send to backend
+            try {
+                const response = await fetch('/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ada_code: combinedCode })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert(`✅ Verification complete!\n${result.verification.properties_verified} properties verified`);
+                    // Could open results in new window
+                    window.open('/', '_blank');
+                } else {
+                    alert('❌ Verification failed: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Network error: ' + error.message);
+            }
+        }
+        
+        // Initialize with one example task
+        addNewTask();
+    </script>
+</body>
+</html>

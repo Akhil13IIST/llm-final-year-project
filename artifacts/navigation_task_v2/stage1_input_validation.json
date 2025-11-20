@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "notes": "Specification parsed and normalized; all required fields present.",
+  "normalized_spec": {
+    "system": "NavigationTaskExtended",
+    "scheduler": "RMS",
+    "mutexes": 1,
+    "tasks": [
+      {"id": 1, "name": "T_High", "period_ms": 30, "execution_ms": 8, "deadline_ms": 30, "priority": 1, "uses_mutex": false},
+      {"id": 2, "name": "T_Medium", "period_ms": 100, "execution_ms": 30, "deadline_ms": 100, "priority": 2, "uses_mutex": true},
+      {"id": 3, "name": "T_Low", "period_ms": 150, "execution_ms": 20, "deadline_ms": 150, "priority": 3, "uses_mutex": true},
+      {"id": 4, "name": "T_Backup", "period_ms": 400, "execution_ms": 8, "deadline_ms": 400, "priority": 4, "uses_mutex": false},
+      {"id": 5, "name": "T_Diagnostic", "period_ms": 800, "execution_ms": 10, "deadline_ms": 800, "priority": 5, "uses_mutex": false}
+    ]
+  },
+  "fixes_applied": []
+}
